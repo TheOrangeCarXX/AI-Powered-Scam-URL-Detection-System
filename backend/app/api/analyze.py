@@ -1,9 +1,12 @@
 from fastapi import APIRouter, HTTPException
+from urllib.parse import urlparse
+
 from app.models.schemas import AnalyzeRequest
 from app.services.url_checks import analyze_url
 from app.services.html_checks import analyze_html
 from app.services.scoring import calculate_score
 from app.services.gemini_ai import ai_analyze_page
+from app.services.cache import get_cached, set_cache
 
 router = APIRouter(prefix="/analyze", tags=["Analyze"])
 
@@ -12,22 +15,31 @@ router = APIRouter(prefix="/analyze", tags=["Analyze"])
 def analyze(request: AnalyzeRequest):
     rule_flags = []
     page_text = ""
+    domain = None
 
-    # 1️⃣ Rule-based checks
+    # -------- URL SCAN --------
     if request.type == "url":
+        domain = urlparse(request.data).netloc
+
+        # 🔥 CACHE CHECK
+        cached = get_cached(domain)
+        if cached:
+            return cached
+
         rule_flags = analyze_url(request.data)
         page_text = request.data
 
+    # -------- HTML SCAN --------
     elif request.type == "html":
         rule_flags, page_text = analyze_html(request.data)
 
     else:
         raise HTTPException(status_code=400, detail="Invalid input type")
 
-    # 2️⃣ Rule-based score
+    # -------- RULE SCORE --------
     rule_score, _, _ = calculate_score(rule_flags)
 
-    # 3️⃣ Gemini AI full-page analysis
+    # -------- AI ANALYSIS --------
     ai_result = ai_analyze_page(
         page_text=page_text,
         rule_flags=rule_flags
@@ -35,7 +47,7 @@ def analyze(request: AnalyzeRequest):
 
     ai_score = ai_result["ai_score"]
 
-    # 4️⃣ HYBRID FINAL SCORE
+    # -------- HYBRID FINAL SCORE --------
     final_score = int((rule_score * 0.6) + (ai_score * 0.4))
 
     if final_score >= 70:
@@ -47,6 +59,7 @@ def analyze(request: AnalyzeRequest):
 
     confidence = round(final_score / 100, 2)
 
+    # 🔥 SAFE EXPLANATION FIX
     if verdict == "SAFE":
         ai_explanation = (
             "No common scam indicators were detected. "
@@ -55,7 +68,7 @@ def analyze(request: AnalyzeRequest):
     else:
         ai_explanation = ai_result["ai_explanation"]
 
-    return {
+    response = {
         "verdict": verdict,
         "final_score": final_score,
         "confidence": confidence,
@@ -69,3 +82,9 @@ def analyze(request: AnalyzeRequest):
             else "No immediate action required."
         )
     }
+
+    # 🔥 SAVE TO CACHE
+    if domain:
+        set_cache(domain, response)
+
+    return response
