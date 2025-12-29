@@ -36,7 +36,7 @@ def analyze(request: AnalyzeRequest):
     ai_score = ai_result["ai_score"]
 
     # 4️⃣ HYBRID FINAL SCORE
-    final_score = int((rule_score * 0.6) + (ai_score * 0.4))
+    final_score = int((rule_score * 0.3) + (ai_score * 0.7))
 
     if final_score >= 70:
         verdict = "SCAM"
