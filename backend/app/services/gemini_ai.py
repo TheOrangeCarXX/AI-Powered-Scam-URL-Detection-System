@@ -1,3 +1,4 @@
+import re
 import google.generativeai as genai
 from app.config import GEMINI_API_KEY
 
@@ -5,69 +6,81 @@ genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-pro")
 
 
-def ai_analyze_page(page_text: str, rule_flags: list[str]) -> dict:
-    """
-    Gemini analyzes full page context + rule indicators
-    Returns AI score + explanation
-    """
-
-    # Safety trim
-    page_text = page_text[:3000]
+def ai_analyze_page(url: str, page_text: str) -> dict:
+    page_text = page_text[:1200]
 
     prompt = f"""
-You are a cybersecurity expert.
+You are a cybersecurity and fraud detection expert.
 
-Analyze the following webpage for scam or phishing risk.
+Analyze the following WEBSITE:
 
-PAGE CONTENT:
+URL:
+{url}
+
+VISIBLE PAGE TEXT:
 \"\"\"
 {page_text}
 \"\"\"
 
-RULE-BASED INDICATORS:
-{', '.join(rule_flags) if rule_flags else 'None'}
-
 TASKS:
-1. Give a scam risk score from 0 to 100.
-2. Briefly explain why.
+1. Decide whether this website appears to be a legitimate, well-known service.
+2. Decide whether there are signs of scam or fraud intent.
+3. Assign a scam risk score from 0 to 100.
 
-RULES:
-- Be factual and calm
-- Do not exaggerate
-- Do not mention AI or models
-- Max 3 sentences
-- Output ONLY in this format:
+IMPORTANT:
+- Legitimate websites may still have login forms.
+- Scam sites often misuse brand names, urgency, or fear language.
 
-Score: <number>
-Explanation: <text>
+OUTPUT FORMAT (STRICT):
+Legitimate: YES | NO | UNCERTAIN
+RiskScore: <number>
+Explanation: <short explanation>
 """
 
     try:
         response = model.generate_content(prompt)
         text = response.text.strip()
 
-        score = 50
-        explanation = "The page was analyzed for scam indicators."
+        # ✅ Neutral defaults (important)
+        risk_score = 40
+        trust_level = "MEDIUM"
+        explanation = "No strong scam indicators detected."
 
         for line in text.splitlines():
-            if line.lower().startswith("score"):
-                score = int("".join(filter(str.isdigit, line)))
-            elif line.lower().startswith("explanation"):
-                explanation = line.split(":", 1)[1].strip()
+            line_clean = line.strip().lower()
 
-        score = max(0, min(score, 100))
+            # ✅ Robust RiskScore parsing
+            if "riskscore" in line_clean:
+                nums = re.findall(r"\d+", line_clean)
+                if nums:
+                    risk_score = int(nums[0])
+
+            # ✅ Robust TrustLevel parsing
+            elif "trustlevel" in line_clean:
+                if "high" in line_clean:
+                    trust_level = "HIGH"
+                elif "low" in line_clean:
+                    trust_level = "LOW"
+                else:
+                    trust_level = "MEDIUM"
+
+            # ✅ Robust Explanation parsing
+            elif "explanation" in line_clean:
+                explanation = line.split(":", 1)[-1].strip()
 
         return {
-            "ai_score": score,
+            "ai_score": max(0, min(risk_score, 100)),
+            "trust_level": trust_level,
             "ai_explanation": explanation
         }
 
     except Exception:
-        # Demo-safe fallback
+        # ⚠️ FAIL-SAFE: NEUTRAL, NOT SAFE
         return {
-            "ai_score": 50,
+            "ai_score": 40,
+            "trust_level": "MEDIUM",
             "ai_explanation": (
-                "The page shows warning signs such as urgency or requests "
-                "for sensitive information, which are commonly used in scams."
+                "AI analysis could not be completed. "
+                "Using neutral confidence based on available signals."
             )
         }

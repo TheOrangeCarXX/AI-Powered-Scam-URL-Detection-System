@@ -11,22 +11,18 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     })
   })
     .then((response) => {
-      if (!response.ok) {
-        console.error("Auto-scan backend error:", response.status);
-        return null;
-      }
+      if (!response.ok) return null;
       return response.json();
     })
     .then((data) => {
       if (!data) return;
 
-      // ✅ SAFETY CHECK
-      if (chrome?.storage?.local) {
-        chrome.storage.local.set({ lastScanResult: data });
-        console.log("✅ Auto-scan stored result for:", tab.url);
-      } else {
-        console.warn("chrome.storage.local not available yet");
-      }
+      // ✅ STORE RESULT PER URL (CRITICAL FIX)
+      chrome.storage.local.set({
+        [tab.url]: data
+      });
+
+      console.log("✅ Auto-scan stored for:", tab.url);
     })
     .catch((err) => {
       console.error("❌ Auto-scan failed:", err);

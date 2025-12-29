@@ -11,33 +11,42 @@ function displayResult(data) {
   resultDiv.classList.remove("hidden");
 
   verdictEl.textContent = data.verdict;
-  scoreEl.textContent = `${data.final_score}/100`;
-  explanationEl.textContent = data.ai_explanation;
 
-  // Hide scan button once auto-scan is shown
+  // ✅ UX FIX: Explain baseline score for SAFE sites
+  if (data.verdict === "SAFE" && data.final_score <= 30) {
+    scoreEl.textContent = "Low risk (baseline checks)";
+    explanationEl.textContent =
+      "This website passed scam detection. A small baseline score is applied due to structural safety checks, not scam behavior.";
+  } else {
+    scoreEl.textContent = `${data.final_score}/100`;
+    explanationEl.textContent = data.ai_explanation;
+  }
+
   scanBtn.style.display = "none";
 
-  // Reset body color
   document.body.className = "";
-
   if (data.verdict === "SAFE") document.body.classList.add("safe-bg");
   else if (data.verdict === "SUSPICIOUS") document.body.classList.add("suspicious-bg");
   else document.body.classList.add("scam-bg");
 }
 
-/* ---------- AUTO-SCAN DISPLAY ---------- */
+/* ---------- AUTO DISPLAY (URL-AWARE) ---------- */
 document.addEventListener("DOMContentLoaded", () => {
-  chrome.storage.local.get("lastScanResult", (res) => {
-    if (res.lastScanResult) {
-      displayResult(res.lastScanResult);
-    } else {
-      loading.textContent = "Click scan to analyze page";
-      loading.classList.remove("hidden");
-    }
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const currentUrl = tabs[0].url;
+
+    chrome.storage.local.get(currentUrl, (res) => {
+      if (res[currentUrl]) {
+        displayResult(res[currentUrl]);
+      } else {
+        loading.textContent = "Scanning page…";
+        loading.classList.remove("hidden");
+      }
+    });
   });
 });
 
-/* ---------- MANUAL SCAN (optional refresh) ---------- */
+/* ---------- MANUAL SCAN (OPTIONAL) ---------- */
 scanBtn.addEventListener("click", () => {
   loading.classList.remove("hidden");
   loading.textContent = "Scanning...";
@@ -53,7 +62,10 @@ scanBtn.addEventListener("click", () => {
       })
     })
       .then((res) => res.json())
-      .then((data) => displayResult(data))
+      .then((data) => {
+        chrome.storage.local.set({ [tabs[0].url]: data });
+        displayResult(data);
+      })
       .catch(() => {
         loading.textContent = "❌ Backend not running";
       });

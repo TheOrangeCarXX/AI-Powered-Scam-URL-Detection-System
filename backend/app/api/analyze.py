@@ -1,90 +1,72 @@
 from fastapi import APIRouter, HTTPException
-from urllib.parse import urlparse
+import requests
 
-from app.models.schemas import AnalyzeRequest
+from app.models.schemas import AnalyzeRequest, AnalyzeResponse
 from app.services.url_checks import analyze_url
 from app.services.html_checks import analyze_html
 from app.services.scoring import calculate_score
 from app.services.gemini_ai import ai_analyze_page
 from app.services.cache import get_cached, set_cache
 
-router = APIRouter(prefix="/analyze", tags=["Analyze"])
+router = APIRouter()
 
 
 @router.post("")
 def analyze(request: AnalyzeRequest):
-    rule_flags = []
-    page_text = ""
-    domain = None
+    url = request.data.strip()
 
-    # -------- URL SCAN --------
-    if request.type == "url":
-        domain = urlparse(request.data).netloc
+    # ✅ Cache by full URL
+    cached = get_cached(url)
+    if cached:
+        return cached
 
-        # 🔥 CACHE CHECK
-        cached = get_cached(domain)
-        if cached:
-            return cached
+    rule_flags: list[str] = []
 
-        rule_flags = analyze_url(request.data)
-        page_text = request.data
+    # Fetch page
+    try:
+        response = requests.get(url, timeout=6)
+        html = response.text
+    except Exception:
+        html = ""
+        rule_flags.append("Unable to fetch page content")
 
-    # -------- HTML SCAN --------
-    elif request.type == "html":
-        rule_flags, page_text = analyze_html(request.data)
+    # Structural rule checks
+    url_flags = analyze_url(url)                 # list[str]
+    html_flags, page_text = analyze_html(html)   # (list[str], str)
 
-    else:
-        raise HTTPException(status_code=400, detail="Invalid input type")
+    rule_flags.extend(url_flags)
+    rule_flags.extend(html_flags)
 
-    # -------- RULE SCORE --------
-    rule_score, _, _ = calculate_score(rule_flags)
+    # Rule-based score (low weight by design)
+    rule_score, rule_verdict, rule_confidence = calculate_score(rule_flags)
 
-    # -------- AI ANALYSIS --------
-    ai_result = ai_analyze_page(
-        page_text=page_text,
-        rule_flags=rule_flags
-    )
+    # AI analysis (semantic intent)
+    ai_result = ai_analyze_page(url, page_text)
+    ai_score = ai_result.get("ai_score", 40)
+    trust_level = ai_result.get("trust_level", "MEDIUM")
+    ai_explanation = ai_result.get("ai_explanation", "")
 
-    ai_score = ai_result["ai_score"]
-
-    # -------- HYBRID FINAL SCORE --------
-    final_score = int((rule_score * 0.6) + (ai_score * 0.4))
-
-    if final_score >= 70:
-        verdict = "SCAM"
-    elif final_score >= 40:
-        verdict = "SUSPICIOUS"
-    else:
+    # ✅ TrustLevel HIGH should not blindly override
+    if trust_level == "HIGH" and rule_score < 10:
         verdict = "SAFE"
-
-    confidence = round(final_score / 100, 2)
-
-    # 🔥 SAFE EXPLANATION FIX
-    if verdict == "SAFE":
-        ai_explanation = (
-            "No common scam indicators were detected. "
-            "This appears to be a legitimate website."
-        )
+        final_score = 0
     else:
-        ai_explanation = ai_result["ai_explanation"]
+        # Final score = AI dominant + rule influence
+        final_score = (max(ai_score, 40) * 0.75) + (rule_score * 0.25)
 
-    response = {
+        verdict = (
+            "SCAM"
+            if final_score >= 70
+            else "SUSPICIOUS"
+            if final_score >= 40
+            else "SAFE"
+        )
+
+    response_data = {
         "verdict": verdict,
         "final_score": final_score,
-        "confidence": confidence,
-        "rule_score": rule_score,
-        "ai_score": ai_score,
-        "reasons": rule_flags,
-        "ai_explanation": ai_explanation,
-        "recommended_action": (
-            "Do not proceed. Close the page immediately."
-            if verdict != "SAFE"
-            else "No immediate action required."
-        )
+        "ai_explanation": ai_explanation
     }
 
-    # 🔥 SAVE TO CACHE
-    if domain:
-        set_cache(domain, response)
-
-    return response
+    set_cache(url, response_data)
+    return response_data

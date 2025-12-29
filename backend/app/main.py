@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # Routes
-app.include_router(analyze_router)
+app.include_router(analyze_router, prefix="/analyze")
 
 @app.get("/")
 def health_check():
