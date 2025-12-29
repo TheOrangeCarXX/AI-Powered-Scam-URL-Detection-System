@@ -1,0 +1,32 @@
+body {
+  font-family: Arial, sans-serif;
+  width: 300px;
+  padding: 10px;
+}
+
+h2 {
+  text-align: center;
+}
+
+button {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+.safe {
+  color: green;
+}
+
+.suspicious {
+  color: orange;
+}
+
+.scam {
+  color: red;
+}
