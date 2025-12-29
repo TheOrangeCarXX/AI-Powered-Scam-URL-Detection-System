@@ -6,6 +6,7 @@ const scoreEl = document.getElementById("score");
 const explanationEl = document.getElementById("explanation");
 
 scanBtn.addEventListener("click", async () => {
+  // Show loading, hide result
   loading.classList.remove("hidden");
   resultDiv.classList.add("hidden");
 
@@ -26,20 +27,23 @@ scanBtn.addEventListener("click", async () => {
 
       const data = await response.json();
 
+      // Hide loading, show result
       loading.classList.add("hidden");
       resultDiv.classList.remove("hidden");
 
-      // Verdict
+      // Verdict text
       verdictEl.textContent = data.verdict;
 
-      // Final score (FIXED)
+      // Final risk score
       scoreEl.textContent = `${data.final_score}/100`;
 
-      // Gemini explanation (FIXED)
+      // Gemini explanation
       explanationEl.textContent = data.ai_explanation;
 
-      // Reset & apply color classes
+      // Reset classes
       verdictEl.className = "";
+
+      // Apply color class
       if (data.verdict === "SAFE") verdictEl.classList.add("safe");
       if (data.verdict === "SUSPICIOUS") verdictEl.classList.add("suspicious");
       if (data.verdict === "SCAM") verdictEl.classList.add("scam");
