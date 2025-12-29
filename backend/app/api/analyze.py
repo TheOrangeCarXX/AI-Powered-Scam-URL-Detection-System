@@ -7,25 +7,36 @@ from app.services.gemini_ai import ai_analyze_page
 
 router = APIRouter(prefix="/analyze", tags=["Analyze"])
 
+
 @router.post("")
 def analyze(request: AnalyzeRequest):
-    rule_flags=[]
-    page_text=""
+    rule_flags = []
+    page_text = ""
 
-    if request.url:
-        rule_flags=analyze_url(request.data)
-        page_text=request.data
-    elif request.html:
-        rule_flags, page_text=analyze_html(request.data)
+    # ✅ CORRECT WAY: use request.type + request.data
+    if request.type == "url":
+        rule_flags = analyze_url(request.data)
+        page_text = request.data  # URL as context for Gemini
+
+    elif request.type == "html":
+        rule_flags, page_text = analyze_html(request.data)
+
     else:
-        raise HTTPException(status_code=400, detail="Invalid input type.")
-    
+        raise HTTPException(status_code=400, detail="Invalid input type")
+
+    # Rule-based score
     rule_score, _, _ = calculate_score(rule_flags)
 
-    ai_result=ai_analyze_page(page_text=page_text, rule_flags=rule_flags)
-    ai_score=ai_result["ai_score"]
-    ai_explanation=ai_result["ai_explanation"]
+    # Gemini AI full-page analysis
+    ai_result = ai_analyze_page(
+        page_text=page_text,
+        rule_flags=rule_flags
+    )
 
+    ai_score = ai_result["ai_score"]
+    ai_explanation = ai_result["ai_explanation"]
+
+    # Hybrid final score
     final_score = int((rule_score * 0.6) + (ai_score * 0.4))
 
     if final_score >= 70:
