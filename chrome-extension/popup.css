@@ -35,3 +35,15 @@ button {
   color: red;
   font-weight: bold;
 }
+
+.safe-bg {
+  background-color: #e8f9e8;
+}
+
+.suspicious-bg {
+  background-color: #fff4e5;
+}
+
+.scam-bg {
+  background-color: #fdeaea;
+}

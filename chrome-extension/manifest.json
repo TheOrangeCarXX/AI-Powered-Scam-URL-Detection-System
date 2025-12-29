@@ -1,14 +1,24 @@
 {
   "manifest_version": 3,
   "name": "AI Scam Detector",
-  "description": "Detects scam and phishing websites using AI",
   "version": "1.0",
-  "permissions": ["tabs", "activeTab", "scripting"],
-  "host_permissions": ["http://localhost:8000/*"],
-  "action": {
-    "default_popup": "popup.html"
-  },
+  "description": "Automatically scans websites for scam risk using AI",
+
+  "permissions": [
+    "tabs",
+    "storage"
+  ],
+
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*"
+  ],
+
   "background": {
     "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_popup": "popup.html"
   }
 }
