@@ -1,23 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8" />
-    <title>AI Scam Detector</title>
-    <link rel="stylesheet" href="popup.css" />
+  <meta charset="UTF-8" />
+  <title>AI Scam Detector</title>
+  <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-<h2>🛡 AI Scam Detector</h2>
 
-<button id="scanBtn">Scan Current Page</button>
+  <h2>🛡 AI Scam Detector</h2>
 
-<div id="loading" class="hidden">🔍 Scanning...</div>
+  <button id="scanBtn">Scan Current Page</button>
 
-<div id="result" class="hidden">
+  <div id="loading" class="hidden">🔍 Scanning...</div>
+
+  <div id="result" class="hidden">
     <h3 id="verdict"></h3>
     <p><strong>Risk Score:</strong> <span id="score"></span></p>
     <p id="explanation"></p>
-</div>
+  </div>
 
-<script src="popup.js"></script>
+  <script src="popup.js"></script>
 </body>
 </html>

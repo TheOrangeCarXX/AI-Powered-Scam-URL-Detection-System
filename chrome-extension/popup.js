@@ -5,16 +5,17 @@ const verdictEl = document.getElementById("verdict");
 const scoreEl = document.getElementById("score");
 const explanationEl = document.getElementById("explanation");
 
-scanBtn.addEventListener("click", async () => {
-  // Show loading, hide result
-  loading.classList.remove("hidden");
+scanBtn.addEventListener("click", () => {
+  // Reset UI
   resultDiv.classList.add("hidden");
+  loading.classList.remove("hidden");
+  loading.textContent = "Scanning...";
 
   chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
     const url = tabs[0].url;
 
     try {
-      const response = await fetch("http://localhost:8000/analyze", {
+      const response = await fetch("http://127.0.0.1:8000/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -25,32 +26,40 @@ scanBtn.addEventListener("click", async () => {
         })
       });
 
-      const data = await response.json();
+      // ✅ Check HTTP status FIRST
+      if (!response.ok) {
+        loading.textContent = `❌ Backend error (${response.status})`;
+        return;
+      }
 
-      // Hide loading, show result
+      // ✅ Safely parse JSON
+      let data;
+      try {
+        data = await response.json();
+      } catch (err) {
+        loading.textContent = "❌ Invalid response from backend";
+        console.error("JSON parse error:", err);
+        return;
+      }
+
+      // Show result
       loading.classList.add("hidden");
       resultDiv.classList.remove("hidden");
 
-      // Verdict text
       verdictEl.textContent = data.verdict;
-
-      // Final risk score
       scoreEl.textContent = `${data.final_score}/100`;
-
-      // Gemini explanation
       explanationEl.textContent = data.ai_explanation;
 
-      // Reset classes
+      // Reset verdict color
       verdictEl.className = "";
 
-      // Apply color class
       if (data.verdict === "SAFE") verdictEl.classList.add("safe");
-      if (data.verdict === "SUSPICIOUS") verdictEl.classList.add("suspicious");
-      if (data.verdict === "SCAM") verdictEl.classList.add("scam");
+      else if (data.verdict === "SUSPICIOUS") verdictEl.classList.add("suspicious");
+      else if (data.verdict === "SCAM") verdictEl.classList.add("scam");
 
     } catch (err) {
       loading.textContent = "❌ Backend not running";
-      console.error(err);
+      console.error("Fetch error:", err);
     }
   });
 });
