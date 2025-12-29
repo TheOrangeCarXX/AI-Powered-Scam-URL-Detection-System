@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reward Claim Center</title>
+  <style>
+    body {
+      background-color: #f3f6fb;
+      font-family: Arial, sans-serif;
+    }
+    .card {
+      width: 420px;
+      margin: 60px auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    .header {
+      background-color: #f57f17;
+      color: white;
+      padding: 12px;
+      border-radius: 6px 6px 0 0;
+      text-align: center;
+      font-size: 18px;
+    }
+    button {
+      background-color: #f57f17;
+      color: white;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .warning {
+      color: red;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+    }
+    .trust {
+      font-size: 12px;
+      color: gray;
+      text-align: center;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">🎉 Reward Claim Center</div>
+
+  <p><strong>Congratulations!</strong></p>
+  <p>You are eligible to receive a <b>₹5,000 instant reward</b> for recent transactions.</p>
+  <p>Please verify your details to credit the reward immediately.</p>
+
+  <form>
+    <label>UPI ID</label>
+    <input type="text" placeholder="example@upi">
+
+    <label>Confirm UPI PIN</label>
+    <input type="password" placeholder="****">
+
+    <button>Claim Reward</button>
+  </form>
+
+  <p class="warning">⚠ Failure to verify within 30 minutes may result in reward cancellation.</p>
+
+  <div class="trust">
+    ✔ Secure Process &nbsp; | &nbsp; ✔ Automated System Message
+  </div>
+</div>
+
+</body>
+</html>
