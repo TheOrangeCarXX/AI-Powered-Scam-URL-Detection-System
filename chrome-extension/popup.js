@@ -18,7 +18,10 @@ scanBtn.addEventListener("click", async () => {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ url })
+        body: JSON.stringify({
+          type: "url",
+          data: url
+        })
       });
 
       const data = await response.json();
@@ -26,10 +29,16 @@ scanBtn.addEventListener("click", async () => {
       loading.classList.add("hidden");
       resultDiv.classList.remove("hidden");
 
+      // Verdict
       verdictEl.textContent = data.verdict;
-      scoreEl.textContent = data.risk_score + "/100";
-      explanationEl.textContent = data.explanation;
 
+      // Final score (FIXED)
+      scoreEl.textContent = `${data.final_score}/100`;
+
+      // Gemini explanation (FIXED)
+      explanationEl.textContent = data.ai_explanation;
+
+      // Reset & apply color classes
       verdictEl.className = "";
       if (data.verdict === "SAFE") verdictEl.classList.add("safe");
       if (data.verdict === "SUSPICIOUS") verdictEl.classList.add("suspicious");
