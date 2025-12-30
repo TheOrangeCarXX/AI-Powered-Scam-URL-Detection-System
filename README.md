@@ -188,7 +188,7 @@ http://127.0.0.1:8000
 | Chevuru V R Dinesh Karthik |Backend Dev + Documentation |
 | Parimi Venkata Krishna | Frontend Dev + Documentation + Tester       |
 | R Anish Reddy | AI Dev + Integration + Tester         |
-| Pidela Yashwanth Reddy | All Rounder + Demo Presenter         |
+| Pidela Yashwanth Reddy | Backend Dev + Demo Presenter         |
 
 ---
 
