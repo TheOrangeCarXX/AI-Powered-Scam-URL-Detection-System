@@ -135,6 +135,7 @@ Request Payload:
   "data": "https://example.com",
   "html": "<optional html>"
 }
+```
 
 Response:
 ```json
@@ -143,15 +144,16 @@ Response:
   "final_score": 42,
   "ai_explanation": "Explanation text"
 }
+```
+
+---
 
 ## 🧩 Chrome Extension Features
 
 - Automatic scan on page load
-- Manual scan option
 - Visual risk indicators (badge / popup)
 - Color-coded results (SAFE / SUSPICIOUS / SCAM)
 - No user interaction required for automatic scans
-- Manual scan available from the extension popup
 
 ---
 
@@ -166,6 +168,8 @@ uvicorn app.main:app --reload
 
 Server:
 http://127.0.0.1:8000
+
+---
 
 ### Chrome Extension
 1. Open chrome://extensions
