@@ -1,16 +1,18 @@
 import requests
 from app.config import GEMINI_API_KEY
 
+# Gemini API endpoint for content generation
 GEMINI_ENDPOINT = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
     "gemini-flash-latest:generateContent"
 )
 
+# Standard headers for the Gemini API requests
 HEADERS = {
     "Content-Type": "application/json"
 }
 
-
+# Function to analyze a webpage using Gemini AI
 def ai_analyze_page(url: str, page_text: str) -> dict:
     page_text = page_text[:10000]
 
@@ -89,7 +91,7 @@ Explanation: <short explanation>
     except Exception:
         # ✅ INTENTIONAL FALLBACK (not an error)
         return {
-            "ai_score": 35,
+            "ai_score": 25,
             "trust_level": "MEDIUM",
             "ai_explanation": (
                 "External AI limited for financial content. "

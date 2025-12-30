@@ -65,12 +65,12 @@ def analyze(request: AnalyzeRequest):
     if ai_score <= 15:
         final_score = rule_score
     else:
-        final_score = int((rule_score * 0.6) + (ai_score * 0.4))
+        final_score = int((rule_score * 0.7) + (ai_score * 0.3))
 
     # 5️⃣ Final verdict
-    if final_score >= 60:
+    if final_score >= 55:
         verdict = "SCAM"
-    elif final_score >= 30:
+    elif final_score >= 35:
         verdict = "SUSPICIOUS"
     else:
         verdict = "SAFE"

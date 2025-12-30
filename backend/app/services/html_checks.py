@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 # Added common phishing input types
 SENSITIVE_INPUT_TYPES = ["password", "tel", "number", "text", "email"]
 
-# Expanded to catch your failing test cases (SBI, Support, Alert)
+# Common social engineering phrases often found in scams
 SCAM_PHRASES = [
     "upi pin", "kyc update", "account blocked", "verify your account",
     "claim reward", "lottery winner", "customer care", "get cashback",
@@ -11,19 +11,20 @@ SCAM_PHRASES = [
     "official login", "restore access", "mandatory update"
 ]
 
+# Function to analyze HTML content for scam indicators
 def analyze_html(html: str):
     flags = set()
     soup = BeautifulSoup(html, "html.parser")
     texts = []
 
-    # 1. NEW: Title Check (Crucial for the SBI fake file)
+    # Title Check
     title_tag = soup.title.string.lower() if soup.title else ""
     if title_tag:
         texts.append(f"Title: {title_tag}")
         if any(p in title_tag for p in ["sbi", "blocked", "alert", "login", "bank"]):
             flags.add("Suspicious keywords detected in page title")
 
-    # 2. Visible Text extraction
+    # Visible Text extraction
     visible_text = soup.get_text(separator=" ", strip=True).lower()
     texts.append(visible_text)
 
@@ -32,7 +33,7 @@ def analyze_html(html: str):
         if phrase in visible_text:
             flags.add(f"Suspicious intent detected: '{phrase}'")
 
-    # 3. Input-related signals
+    # Input-related signals
     inputs = soup.find_all("input")
     if len(inputs) > 0:
         for inp in inputs:
@@ -50,7 +51,7 @@ def analyze_html(html: str):
 
             texts.extend([name, placeholder])
 
-    # 4. Form Action Logic
+    # Form Action Logic
     for form in soup.find_all("form"):
         action = (form.get("action") or "").lower()
         if action.startswith("http://"):
@@ -64,14 +65,14 @@ def analyze_html(html: str):
         if any(x in action for x in ["api", "submit.php", "post.php", "login.php"]):
             flags.add("Suspicious form submission endpoint detected")
 
-    # 5. Button text
+    # Button Text Analysis
     for btn in soup.find_all("button"):
         btn_text = btn.get_text(strip=True).lower()
         texts.append(btn_text)
         if any(x in btn_text for x in ["verify", "unblock", "claim", "login"]):
             flags.add("Action button uses high-urgency language")
 
-    # Final Text for AI Analysis - Increased to 15,000 to prevent missing data
+    # Final Text for AI Analysis
     page_text = " ".join(filter(None, texts))[:15000]
 
     return list(flags), page_text

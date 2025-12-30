@@ -5,11 +5,12 @@ import time
 # Backend API endpoint
 API_URL = "http://127.0.0.1:8000/analyze"
 
-# testpages is sibling of backend
+# Directory containing test HTML files
 TEST_DATA_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "test-pages")
 )
 
+# Function to run the batch tests
 def run_tests():
     print("\n🔍 Starting AI-Powered Security Batch Scan")
     print("=" * 90)
