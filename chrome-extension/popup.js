@@ -12,7 +12,7 @@ function displayResult(data) {
 
   verdictEl.textContent = data.verdict;
 
-  // ✅ UX FIX: Explain baseline score for SAFE sites
+  // Special case: SAFE with low score
   if (data.verdict === "SAFE" && data.final_score <= 30) {
     scoreEl.textContent = "Low risk (baseline checks)";
     explanationEl.textContent =
@@ -30,7 +30,7 @@ function displayResult(data) {
   else document.body.classList.add("scam-bg");
 }
 
-/* ---------- AUTO DISPLAY (URL-AWARE) ---------- */
+/* ---------- AUTO DISPLAY ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const currentUrl = tabs[0].url;

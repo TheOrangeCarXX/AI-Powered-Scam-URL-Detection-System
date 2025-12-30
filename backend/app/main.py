@@ -3,13 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.analyze import router as analyze_router
 
+# FastAPI app instance
 app = FastAPI(
     title="AI Scam Detector",
     description="Detects scam websites using rules + Gemini AI",
     version="1.0"
 )
 
-# ✅ CORS FIX (IMPORTANT)
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],          # allow chrome-extension & localhost
@@ -21,6 +22,7 @@ app.add_middleware(
 # Routes
 app.include_router(analyze_router, prefix="/analyze")
 
+# Health Check Endpoint
 @app.get("/")
 def health_check():
     return {

@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 
+# Utility function for 400 Bad Request error
 def bad_request(message: str):
     raise HTTPException(
         status_code=400,
@@ -10,6 +11,7 @@ def bad_request(message: str):
         }
     )
 
+# Utility function for 404 Not Found error
 def server_error():
     raise HTTPException(
         status_code=500,
