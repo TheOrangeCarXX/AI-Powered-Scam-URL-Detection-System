@@ -17,7 +17,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     .then((data) => {
       if (!data) return;
 
-      // ✅ STORE RESULT PER URL (CRITICAL FIX)
       chrome.storage.local.set({
         [tab.url]: data
       });
