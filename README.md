@@ -179,7 +179,7 @@ http://127.0.0.1:8000
 
 ---
 
-# 👥 Team: Java Wizards
+# 👥 Team: WIZARDS
 
 | Member | Contribution                      |
 |--------|-----------------------------------|
