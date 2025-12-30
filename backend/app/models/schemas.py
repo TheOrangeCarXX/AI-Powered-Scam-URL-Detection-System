@@ -1,9 +1,10 @@
 from pydantic import BaseModel
-from typing import Literal
+from typing import Literal, Optional
 
 class AnalyzeRequest(BaseModel):
-    type: Literal["url"]
+    type: Literal["url", "html"]
     data: str
+    html: Optional[str] = None
 
 class AnalyzeResponse(BaseModel):
     verdict: str

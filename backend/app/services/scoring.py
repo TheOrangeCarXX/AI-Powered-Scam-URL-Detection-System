@@ -1,13 +1,13 @@
 def calculate_score(flags: list[str]):
     """
-    Structural rules only.
-    Low weight by design.
+    Structural risk scoring (low confidence by design).
+    Rules alone should not mark a site as SCAM.
     """
 
-    score = len(flags) * 10   # ⬅️ reduced from 20
-    score = min(score, 30)    # ⬅️ rules can never exceed 30
+    score = len(flags) * 15      # ⬅️ reduced from 20
+    score = min(score, 60)       # ⬅️ rules never exceed 60
 
-    if score >= 30:
+    if score >= 45:
         verdict = "SUSPICIOUS"
     else:
         verdict = "SAFE"
